@@ -1,411 +1,345 @@
 
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import NavBar from '@/components/NavBar';
-import Footer from '@/components/Footer';
-import { Star, MapPin, Phone, Clock, Calendar, Share2, Bookmark, Heart, ChevronDown, ChevronUp, User, Users, Utensils } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Star, MapPin, Clock, Phone, Globe, Share, Heart, Calendar } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-// Mock restaurant data
-const restaurantDetails = {
-  id: '1',
-  name: 'Le Petit Bistro',
-  description: 'Découvrez notre cuisine française authentique, préparée avec des produits frais et locaux. Notre chef renommé vous propose une carte variée qui change au fil des saisons.',
-  images: [
-    'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-    'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-    'https://images.unsplash.com/photo-1560717789-0ac7c58ac90a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-    'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-  ],
-  cuisine: 'Français',
-  rating: 4.7,
-  reviews: 243,
-  location: '123 Avenue des Champs-Élysées, Paris 8ème',
-  phone: '+33 1 23 45 67 89',
-  website: 'www.lepetitbistro.fr',
-  price: '€€€',
-  hours: {
-    'Lundi': '12:00 - 22:00',
-    'Mardi': '12:00 - 22:00',
-    'Mercredi': '12:00 - 22:00',
-    'Jeudi': '12:00 - 22:00',
-    'Vendredi': '12:00 - 23:00',
-    'Samedi': '12:00 - 23:00',
-    'Dimanche': '12:00 - 21:00',
+// Mock data for restaurants - in a real app, this would come from an API
+const restaurantData = [
+  {
+    id: '1',
+    name: 'Le Petit Bistro',
+    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+      'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+      'https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+    ],
+    cuisine: 'Français',
+    rating: 4.7,
+    reviews: 243,
+    description: 'Un bistro traditionnel au cœur de Paris, servant des plats français authentiques dans une atmosphère chaleureuse et conviviale.',
+    address: '15 Rue Saint-Jacques, 75005 Paris',
+    phone: '+33 1 42 34 56 78',
+    website: 'www.lepetitbistro.fr',
+    hours: {
+      monday: '12:00 - 22:00',
+      tuesday: '12:00 - 22:00',
+      wednesday: '12:00 - 22:00',
+      thursday: '12:00 - 22:00',
+      friday: '12:00 - 23:00',
+      saturday: '12:00 - 23:00',
+      sunday: '12:00 - 21:00',
+    },
+    location: 'Paris, 6ème',
+    price: '€€€',
+    latitude: 48.8566,
+    longitude: 2.3522,
   },
-  menu: [
-    {
-      category: 'Entrées',
-      items: [
-        { name: 'Soupe à l\'oignon', price: '9€', description: 'Soupe à l\'oignon traditionnelle avec fromage gratiné' },
-        { name: 'Foie gras maison', price: '15€', description: 'Foie gras fait maison avec confiture d\'oignons' },
-        { name: 'Salade Niçoise', price: '12€', description: 'Salade fraîche avec thon, œufs et olives' },
-      ]
+  {
+    id: '2',
+    name: 'Sushi Master',
+    image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1553621042-f6e147245754?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+      'https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+      'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+    ],
+    cuisine: 'Japonais',
+    rating: 4.5,
+    reviews: 187,
+    description: 'Sushi Master propose les meilleurs sushis de Lyon, préparés avec des ingrédients frais et de qualité par nos chefs expérimentés.',
+    address: '10 Rue Mercière, 69002 Lyon',
+    phone: '+33 4 78 12 34 56',
+    website: 'www.sushimaster.fr',
+    hours: {
+      monday: '11:30 - 22:00',
+      tuesday: '11:30 - 22:00',
+      wednesday: '11:30 - 22:00',
+      thursday: '11:30 - 22:00',
+      friday: '11:30 - 23:00',
+      saturday: '11:30 - 23:00',
+      sunday: '12:00 - 21:30',
     },
-    {
-      category: 'Plats',
-      items: [
-        { name: 'Bœuf Bourguignon', price: '24€', description: 'Mijoté de bœuf au vin rouge, carottes et champignons' },
-        { name: 'Magret de canard', price: '26€', description: 'Magret de canard rôti, sauce au poivre et pommes de terre' },
-        { name: 'Filet de bar', price: '28€', description: 'Filet de bar, purée de céleri et sauce aux herbes' },
-      ]
-    },
-    {
-      category: 'Desserts',
-      items: [
-        { name: 'Crème brûlée', price: '8€', description: 'Crème brûlée à la vanille de Madagascar' },
-        { name: 'Tarte Tatin', price: '9€', description: 'Tarte aux pommes caramélisées servie avec crème fraîche' },
-        { name: 'Mousse au chocolat', price: '7€', description: 'Mousse au chocolat noir 70% cacao' },
-      ]
-    },
-  ],
-  features: ['Terrasse', 'Bar à vins', 'Accessible PMR', 'Climatisé', 'Parking', 'Wi-Fi gratuit'],
-};
+    location: 'Lyon, Centre',
+    price: '€€',
+    latitude: 45.7640,
+    longitude: 4.8357,
+  },
+  // Add more restaurant details as needed
+];
 
 const RestaurantDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(true);
-  const [reservationDate, setReservationDate] = useState("");
-  const [reservationTime, setReservationTime] = useState("");
-  const [reservationGuests, setReservationGuests] = useState(2);
+  const [restaurant, setRestaurant] = useState<typeof restaurantData[0] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [guests, setGuests] = useState<number>(2);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleReservation = async (e: React.FormEvent) => {
+  useEffect(() => {
+    // Simulate API call to get restaurant details
+    setIsLoading(true);
+    setTimeout(() => {
+      const foundRestaurant = restaurantData.find(r => r.id === id);
+      setRestaurant(foundRestaurant || null);
+      setIsLoading(false);
+    }, 500);
+  }, [id]);
+
+  const handleReservation = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!reservationDate || !reservationTime) {
-      toast.error("Veuillez sélectionner une date et une heure");
+    if (!selectedDate || !selectedTime) {
+      toast.error("Veuillez sélectionner une date et une heure pour votre réservation.");
       return;
     }
     
     setIsSubmitting(true);
     
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast.success("Réservation confirmée !");
-      
-      // Reset form
-      setReservationDate("");
-      setReservationTime("");
-      setReservationGuests(2);
-      
-    } catch (error) {
-      toast.error("Une erreur est survenue lors de la réservation");
-    } finally {
+    // Simulate API call for reservation
+    setTimeout(() => {
+      toast.success(`Réservation confirmée pour ${guests} personne(s) le ${selectedDate} à ${selectedTime}`);
       setIsSubmitting(false);
-    }
+      setSelectedDate('');
+      setSelectedTime('');
+      setGuests(2);
+    }, 1500);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center pt-20">
+        <div className="animate-spin h-8 w-8 border-4 border-resto-accent border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (!restaurant) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center pt-20 text-center">
+        <h2 className="mb-4 text-2xl font-bold text-resto-900">Restaurant non trouvé</h2>
+        <p className="mb-8 text-resto-600">Le restaurant que vous recherchez n'existe pas ou a été supprimé.</p>
+        <Link to="/restaurants" className="rounded-full bg-resto-accent px-6 py-2.5 text-white transition-all duration-200 hover:bg-resto-accent-light">
+          Voir tous les restaurants
+        </Link>
+      </div>
+    );
+  }
+
+  // Format today's date as YYYY-MM-DD for the date input min value
+  const today = new Date().toISOString().split('T')[0];
+
   return (
-    <div className="min-h-screen">
-      <NavBar />
-      
-      <main className="pt-16">
-        {/* Restaurant header */}
-        <section className="resto-container py-8">
-          <div className="animate-fadeIn">
-            <div className="mx-auto grid max-w-3xl grid-cols-1 gap-6 lg:max-w-none lg:grid-cols-3">
-              {/* Main image */}
-              <div className="lg:col-span-2">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-xl">
-                  <img 
-                    src={restaurantDetails.images[selectedImage]} 
-                    alt={restaurantDetails.name} 
-                    className="h-full w-full object-cover transition-transform duration-700 ease-in-out hover:scale-105"
-                  />
+    <div className="pb-20 pt-28">
+      <div className="resto-container">
+        {/* Restaurant Gallery */}
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="col-span-2 overflow-hidden rounded-xl">
+            <img
+              src={restaurant.image}
+              alt={restaurant.name}
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {restaurant.gallery?.slice(0, 2).map((image, index) => (
+              <div key={index} className="overflow-hidden rounded-xl">
+                <img
+                  src={image}
+                  alt={`${restaurant.name} image ${index + 1}`}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Restaurant Info */}
+        <div className="mb-12 grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <div className="mb-6 flex flex-wrap items-start justify-between">
+              <div>
+                <h1 className="mb-2 text-3xl font-bold text-resto-900">{restaurant.name}</h1>
+                <div className="mb-4 flex flex-wrap items-center gap-4">
+                  <span className="rounded-full bg-resto-100 px-3 py-1 text-sm text-resto-700">
+                    {restaurant.cuisine}
+                  </span>
+                  <span className="rounded-full bg-resto-100 px-3 py-1 text-sm text-resto-700">
+                    {restaurant.price}
+                  </span>
+                  <div className="flex items-center">
+                    <Star size={16} className="fill-resto-accent text-resto-accent" />
+                    <span className="ml-1 text-sm font-medium text-resto-700">{restaurant.rating}</span>
+                    <span className="ml-1 text-sm text-resto-500">({restaurant.reviews} avis)</span>
+                  </div>
                 </div>
               </div>
-              
-              {/* Smaller images */}
-              <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
-                {restaurantDetails.images.slice(1, 4).map((image, index) => (
-                  <div 
-                    key={index}
-                    className="relative aspect-square cursor-pointer overflow-hidden rounded-lg"
-                    onClick={() => setSelectedImage(index + 1)}
-                  >
-                    <img 
-                      src={image} 
-                      alt={`${restaurantDetails.name} ${index + 1}`} 
-                      className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                    />
+              <div className="flex gap-2">
+                <button className="rounded-full bg-white p-2.5 text-resto-700 shadow-subtle transition-all duration-200 hover:text-resto-accent">
+                  <Heart size={18} />
+                </button>
+                <button className="rounded-full bg-white p-2.5 text-resto-700 shadow-subtle transition-all duration-200 hover:text-resto-accent">
+                  <Share size={18} />
+                </button>
+              </div>
+            </div>
+
+            <p className="mb-8 text-resto-700">{restaurant.description}</p>
+
+            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="flex items-start gap-3">
+                <MapPin size={20} className="mt-0.5 text-resto-accent" />
+                <div>
+                  <h3 className="mb-1 font-semibold text-resto-900">Adresse</h3>
+                  <p className="text-sm text-resto-700">{restaurant.address}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Phone size={20} className="mt-0.5 text-resto-accent" />
+                <div>
+                  <h3 className="mb-1 font-semibold text-resto-900">Téléphone</h3>
+                  <p className="text-sm text-resto-700">{restaurant.phone}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Globe size={20} className="mt-0.5 text-resto-accent" />
+                <div>
+                  <h3 className="mb-1 font-semibold text-resto-900">Site Web</h3>
+                  <p className="text-sm text-resto-700">{restaurant.website}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Clock size={20} className="mt-0.5 text-resto-accent" />
+                <div>
+                  <h3 className="mb-1 font-semibold text-resto-900">Heures d'ouverture</h3>
+                  <p className="text-sm text-resto-700">Aujourd'hui: {restaurant.hours.monday}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <h2 className="mb-4 text-xl font-semibold text-resto-900">Horaires d'ouverture</h2>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                {Object.entries(restaurant.hours).map(([day, hours]) => (
+                  <div key={day} className="flex justify-between rounded-lg bg-resto-50 p-3">
+                    <span className="font-medium capitalize text-resto-900">
+                      {day === 'monday' ? 'Lundi' :
+                        day === 'tuesday' ? 'Mardi' :
+                        day === 'wednesday' ? 'Mercredi' :
+                        day === 'thursday' ? 'Jeudi' :
+                        day === 'friday' ? 'Vendredi' :
+                        day === 'saturday' ? 'Samedi' : 'Dimanche'}
+                    </span>
+                    <span className="text-resto-700">{hours}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-        </section>
-        
-        {/* Restaurant info */}
-        <section className="resto-container py-6">
-          <div className="animate-slideUp mx-auto max-w-3xl lg:max-w-none lg:grid lg:grid-cols-3 lg:gap-10">
-            {/* Left content: Restaurant details */}
-            <div className="lg:col-span-2">
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-resto-900">{restaurantDetails.name}</h1>
-                  <div className="mt-2 flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-1">
-                      <Star size={16} className="fill-resto-accent text-resto-accent" />
-                      <span className="font-medium text-resto-700">{restaurantDetails.rating}</span>
-                      <span className="text-sm text-resto-500">({restaurantDetails.reviews} avis)</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-sm text-resto-700">
-                      <MapPin size={14} className="text-resto-500" />
-                      <span>Paris 8ème</span>
-                    </div>
-                    <div className="rounded-full bg-resto-100 px-2.5 py-0.5 text-xs font-medium text-resto-700">
-                      {restaurantDetails.cuisine}
-                    </div>
-                    <div className="rounded-full bg-resto-100 px-2.5 py-0.5 text-xs font-medium text-resto-700">
-                      {restaurantDetails.price}
-                    </div>
+
+          {/* Reservation Form */}
+          <div className="lg:col-span-1">
+            <div className="rounded-xl border border-resto-200 bg-white p-6 shadow-subtle">
+              <h2 className="mb-4 text-xl font-semibold text-resto-900">Réserver une table</h2>
+              <form onSubmit={handleReservation}>
+                <div className="mb-4">
+                  <label htmlFor="date" className="mb-1 block text-sm font-medium text-resto-700">
+                    Date
+                  </label>
+                  <div className="relative">
+                    <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-resto-500" />
+                    <input
+                      type="date"
+                      id="date"
+                      min={today}
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-full rounded-lg border border-resto-200 bg-white py-2.5 pl-10 pr-3 text-resto-900 outline-none focus:border-resto-accent"
+                      required
+                    />
                   </div>
                 </div>
-                
-                <div className="flex gap-2">
-                  <button className="rounded-full bg-resto-100 p-2 text-resto-700 transition-colors hover:bg-resto-200" aria-label="Partager">
-                    <Share2 size={18} />
-                  </button>
-                  <button className="rounded-full bg-resto-100 p-2 text-resto-700 transition-colors hover:bg-resto-200" aria-label="Sauvegarder">
-                    <Bookmark size={18} />
-                  </button>
-                  <button className="rounded-full bg-resto-100 p-2 text-resto-700 transition-colors hover:bg-resto-200" aria-label="Aimer">
-                    <Heart size={18} />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="prose max-w-none">
-                <p className="text-resto-700">{restaurantDetails.description}</p>
-              </div>
-              
-              <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="rounded-lg border border-resto-200 p-4">
-                  <h3 className="flex items-center gap-2 font-semibold text-resto-900">
-                    <MapPin size={16} className="text-resto-accent" />
-                    Adresse
-                  </h3>
-                  <p className="mt-2 text-sm text-resto-700">{restaurantDetails.location}</p>
-                </div>
-                
-                <div className="rounded-lg border border-resto-200 p-4">
-                  <h3 className="flex items-center gap-2 font-semibold text-resto-900">
-                    <Phone size={16} className="text-resto-accent" />
-                    Contact
-                  </h3>
-                  <p className="mt-2 text-sm text-resto-700">{restaurantDetails.phone}</p>
-                  <p className="text-sm text-resto-700">{restaurantDetails.website}</p>
-                </div>
-              </div>
-              
-              {/* Hours */}
-              <div className="mt-8">
-                <h3 className="flex items-center gap-2 font-semibold text-resto-900">
-                  <Clock size={16} className="text-resto-accent" />
-                  Horaires d'ouverture
-                </h3>
-                <div className="mt-3 grid grid-cols-1 gap-2 rounded-lg border border-resto-200 p-4 sm:grid-cols-2">
-                  {Object.entries(restaurantDetails.hours).map(([day, hours]) => (
-                    <div key={day} className="flex justify-between py-1 text-sm">
-                      <span className="font-medium text-resto-900">{day}</span>
-                      <span className="text-resto-700">{hours}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Menu */}
-              <div className="mt-8">
-                <div className="flex items-center justify-between">
-                  <h3 className="flex items-center gap-2 font-semibold text-resto-900">
-                    <Utensils size={16} className="text-resto-accent" />
-                    Menu
-                  </h3>
-                  <button 
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    className="rounded-full p-1 text-resto-600 hover:bg-resto-100"
-                  >
-                    {menuOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                  </button>
-                </div>
-                
-                <div className={cn(
-                  "mt-3 overflow-hidden rounded-lg border border-resto-200 transition-all duration-500 ease-in-out",
-                  menuOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 border-0"
-                )}>
-                  {restaurantDetails.menu.map((section, index) => (
-                    <div key={index} className={cn(
-                      "p-4",
-                      index > 0 && "border-t border-resto-200"
-                    )}>
-                      <h4 className="font-medium text-resto-900">{section.category}</h4>
-                      <div className="mt-3 space-y-4">
-                        {section.items.map((item, itemIndex) => (
-                          <div key={itemIndex}>
-                            <div className="flex items-center justify-between">
-                              <span className="font-medium text-resto-900">{item.name}</span>
-                              <span className="text-resto-accent">{item.price}</span>
-                            </div>
-                            <p className="mt-1 text-sm text-resto-600">{item.description}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Features */}
-              <div className="mt-8">
-                <h3 className="font-semibold text-resto-900">Équipements et services</h3>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {restaurantDetails.features.map((feature, index) => (
-                    <span 
-                      key={index}
-                      className="rounded-full bg-resto-100 px-3 py-1 text-sm text-resto-700"
+                <div className="mb-4">
+                  <label htmlFor="time" className="mb-1 block text-sm font-medium text-resto-700">
+                    Heure
+                  </label>
+                  <div className="relative">
+                    <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-resto-500" />
+                    <select
+                      id="time"
+                      value={selectedTime}
+                      onChange={(e) => setSelectedTime(e.target.value)}
+                      className="w-full rounded-lg border border-resto-200 bg-white py-2.5 pl-10 pr-3 text-resto-900 outline-none focus:border-resto-accent"
+                      required
                     >
-                      {feature}
-                    </span>
-                  ))}
+                      <option value="">Sélectionner une heure</option>
+                      <option value="12:00">12:00</option>
+                      <option value="12:30">12:30</option>
+                      <option value="13:00">13:00</option>
+                      <option value="13:30">13:30</option>
+                      <option value="19:00">19:00</option>
+                      <option value="19:30">19:30</option>
+                      <option value="20:00">20:00</option>
+                      <option value="20:30">20:30</option>
+                      <option value="21:00">21:00</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-            </div>
-            
-            {/* Right content: Reservation form */}
-            <div className="mt-10 lg:mt-0">
-              <div className="sticky top-24 rounded-xl border border-resto-200 bg-white p-6 shadow-card">
-                <h3 className="text-lg font-semibold text-resto-900">Réserver une table</h3>
-                
-                <form onSubmit={handleReservation} className="mt-4 space-y-4">
-                  {/* Date input */}
-                  <div>
-                    <label htmlFor="date" className="mb-1 block text-sm font-medium text-resto-800">
-                      Date
-                    </label>
-                    <div className="relative">
-                      <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-resto-500" />
-                      <input
-                        type="date"
-                        id="date"
-                        value={reservationDate}
-                        onChange={(e) => setReservationDate(e.target.value)}
-                        className="w-full rounded-md border border-resto-200 bg-white py-2.5 pl-9 pr-3 input-focus-ring"
-                        min={new Date().toISOString().split('T')[0]}
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Time input */}
-                  <div>
-                    <label htmlFor="time" className="mb-1 block text-sm font-medium text-resto-800">
-                      Heure
-                    </label>
-                    <div className="relative">
-                      <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-resto-500" />
-                      <select
-                        id="time"
-                        value={reservationTime}
-                        onChange={(e) => setReservationTime(e.target.value)}
-                        className="w-full rounded-md border border-resto-200 bg-white py-2.5 pl-9 pr-3 input-focus-ring"
-                        required
-                      >
-                        <option value="">Sélectionner une heure</option>
-                        <option value="12:00">12:00</option>
-                        <option value="12:30">12:30</option>
-                        <option value="13:00">13:00</option>
-                        <option value="13:30">13:30</option>
-                        <option value="19:00">19:00</option>
-                        <option value="19:30">19:30</option>
-                        <option value="20:00">20:00</option>
-                        <option value="20:30">20:30</option>
-                        <option value="21:00">21:00</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  {/* Guests input */}
-                  <div>
-                    <label htmlFor="guests" className="mb-1 block text-sm font-medium text-resto-800">
-                      Nombre de personnes
-                    </label>
-                    <div className="relative">
-                      <Users size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-resto-500" />
-                      <div className="flex">
-                        <button
-                          type="button"
-                          className="flex h-10 w-10 items-center justify-center rounded-l-md border border-r-0 border-resto-200 bg-resto-50 text-resto-700 transition-colors hover:bg-resto-100"
-                          onClick={() => setReservationGuests(prev => Math.max(1, prev - 1))}
-                        >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          id="guests"
-                          value={reservationGuests}
-                          onChange={(e) => setReservationGuests(Math.max(1, parseInt(e.target.value) || 1))}
-                          min="1"
-                          className="w-12 border-y border-resto-200 bg-white px-0 py-2.5 text-center"
-                        />
-                        <button
-                          type="button"
-                          className="flex h-10 w-10 items-center justify-center rounded-r-md border border-l-0 border-resto-200 bg-resto-50 text-resto-700 transition-colors hover:bg-resto-100"
-                          onClick={() => setReservationGuests(prev => prev + 1)}
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Submit button */}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={`group relative flex w-full items-center justify-center overflow-hidden rounded-md bg-resto-accent px-6 py-3 text-white transition-all duration-300 hover:bg-resto-accent-light ${
-                      isSubmitting ? 'cursor-wait opacity-90' : ''
-                    }`}
-                  >
-                    <span className="absolute inset-0 flex items-center justify-center">
-                      {isSubmitting && (
-                        <svg className="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                      )}
-                    </span>
-                    <span
-                      className={`transform transition-all duration-300 ${
-                        isSubmitting ? 'translate-y-16 opacity-0' : 'translate-y-0 opacity-100'
-                      }`}
+                <div className="mb-6">
+                  <label htmlFor="guests" className="mb-1 block text-sm font-medium text-resto-700">
+                    Nombre de personnes
+                  </label>
+                  <div className="flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => setGuests(prev => Math.max(1, prev - 1))}
+                      className="flex h-10 w-10 items-center justify-center rounded-l-lg border border-resto-200 bg-resto-50 text-resto-700"
                     >
-                      Réserver maintenant
-                    </span>
-                    <span
-                      className={`absolute inset-0 flex items-center justify-center font-medium transition-all duration-300 ${
-                        isSubmitting ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'
-                      }`}
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      id="guests"
+                      min="1"
+                      max="20"
+                      value={guests}
+                      onChange={(e) => setGuests(parseInt(e.target.value) || 1)}
+                      className="h-10 w-16 border-y border-resto-200 py-2 text-center text-resto-900 outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setGuests(prev => Math.min(20, prev + 1))}
+                      className="flex h-10 w-10 items-center justify-center rounded-r-lg border border-resto-200 bg-resto-50 text-resto-700"
                     >
-                      Traitement en cours...
+                      +
+                    </button>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={cn(
+                    "w-full rounded-lg bg-resto-accent py-3 text-center font-medium text-white transition-all duration-200 hover:bg-resto-accent-light",
+                    isSubmitting && "opacity-70 cursor-not-allowed"
+                  )}
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      Réservation en cours...
                     </span>
-                  </button>
-                </form>
-                
-                <p className="mt-4 text-center text-xs text-resto-500">
-                  Annulation gratuite jusqu'à 2 heures avant la réservation
-                </p>
-              </div>
+                  ) : (
+                    "Réserver maintenant"
+                  )}
+                </button>
+              </form>
             </div>
           </div>
-        </section>
-      </main>
-      
-      <Footer />
+        </div>
+      </div>
     </div>
   );
 };

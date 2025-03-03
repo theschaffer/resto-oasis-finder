@@ -3,10 +3,26 @@ import React, { useState } from 'react';
 import { Search, MapPin, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const SearchBar: React.FC = () => {
+interface SearchBarProps {
+  onSearch?: (searchValue: string, locationValue: string) => void;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [locationValue, setLocationValue] = useState('');
+
+  const handleSearch = () => {
+    if (onSearch) {
+      onSearch(searchValue, locationValue);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   return (
     <div 
@@ -29,6 +45,7 @@ const SearchBar: React.FC = () => {
             onChange={(e) => setSearchValue(e.target.value)}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
+            onKeyPress={handleKeyPress}
             className="w-full bg-transparent py-3.5 pl-8 pr-3 text-resto-900 placeholder-resto-500 outline-none"
           />
         </div>
@@ -46,12 +63,16 @@ const SearchBar: React.FC = () => {
             onChange={(e) => setLocationValue(e.target.value)}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
+            onKeyPress={handleKeyPress}
             className="w-full bg-transparent py-3.5 pl-8 pr-3 text-resto-900 placeholder-resto-500 outline-none"
           />
         </div>
         
         {/* Search button */}
-        <button className="flex items-center justify-center gap-2 rounded-r-full bg-resto-accent px-6 py-3.5 text-white transition-all duration-200 hover:bg-resto-accent-light">
+        <button 
+          className="flex items-center justify-center gap-2 rounded-r-full bg-resto-accent px-6 py-3.5 text-white transition-all duration-200 hover:bg-resto-accent-light"
+          onClick={handleSearch}
+        >
           <span className="hidden md:inline">Rechercher</span>
           <Search size={18} />
         </button>
